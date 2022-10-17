@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ServerlessProject
+
+  Sample SAM Template for ServerlessProject
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 2048
+
+Resources:
+
+  # CREATE: make a new user in our mongoDB db under "registrations"
+  OrganizationUserCreate:
+    Type: 'AWS::Serverless::Function' # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: organizations/user/
+      Handler: create.app.lambda_handler
+      Runtime: python3.8
+      Architectures:
+        - x86_64
+      Events:
+        CompanyCreateUserPostAPI:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: '/user'
+            Method: POST
+            Auth:
+                Authorizer: NONE
+  # Run > Edit Configurations:
+  #  {
+  #     "body": "{\"first_name\": \"Moo\", \"last_name\": \"Cow\", \"email\": \"moo@cows.com\", \"password\": \"12345\"}"
+  #  }
+
+  # READ (all): find all users in db
+  OrganizationUserRead:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: organizations/user/
+      Handler: read.app.lambda_handler
+      Runtime: python3.8
+      Architectures:
+        - x86_64
+      Events:
+        CompanyUserGetAPI:
+          Type: Api
+          Properties:
+            Path: '/user'
+            Method: GET
+            Auth:
+              Authorizer: NONE
+  # Run configurations:
+  #  {
+  #    "body": ""
+  #  }
+
+  # READ by ID: find a specific user by ID
+  OrganizationUserReadById:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: organizations/user/
+      Handler: read.app.lambda_handler
+      Runtime: python3.8
+      Architectures:
+        - x86_64
+      Events:
+        CompanyUserGetByIdAPI:
+          Type: Api
+          Properties:
+            Path: '/user/{Id}'
+            Method: GET
+            Auth:
+              Authorizer: NONE
+  # Run configurations:
+  #  {
+  #    "pathParameters": {
+  #      "Id": "634c9708270c9f3888ac6950"
+  #    }
+  #  }
+
+  OrganizationUserUpdateById:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: organizations/user/
+      Handler: update.app.lambda_handler
+      Runtime: python3.8
+      Architectures:
+        - x86_64
+      Events:
+        CompanyUserUpdateByIdAPI:
+          Type: Api
+          Properties:
+            Path: '/user/{Id}'
+            Method: PUT
+            Auth:
+              Authorizer: NONE
+  # Run configurations:
+  #  {
+  #    "body": "{\"first_name\": \"Boo\", \"last_name\": \"Sow\", \"email\": \"boo@sows.com\"}",
+  #    "pathParameters": {
+  #      "Id": "634c9708270c9f3888ac6950"
+  #    }
+  #  }
+
+  OrganizationUserDeleteById:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: organizations/user/
+      Handler: delete.app.lambda_handler
+      Runtime: python3.8
+      Architectures:
+        - x86_64
+      Events:
+        CompanyUserDeleteByIdAPI:
+          Type: Api
+          Properties:
+            Path: '/user/{Id}'
+            Method: DELETE
+            Auth:
+              Authorizer: NONE
+  # Run configurations: (this ID from previous examples no longer works once deleted)
+  #  {
+  #    "pathParameters": {
+  #      "Id": "634c9708270c9f3888ac6950"
+  #    }
+  #  }
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  OrganizationUserCreate:
+    Description: "Create New User Lambda Function ARN"
+    Value: !GetAtt OrganizationUserCreate.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn
